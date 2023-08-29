@@ -1,1 +1,5 @@
-# 
+Dependencies:
+
+* AttAttach
+* Neet
+* pyinform
