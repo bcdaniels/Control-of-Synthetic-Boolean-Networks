@@ -26,7 +26,7 @@ seed_list = range(1000,1010) #[1000,1001]
 
 csv_filename = 'CK_vs_entropy_data_scan.csv'
 
-with open(csv_filename,mode='a',newline='') as file:
+with open(csv_filename,mode='a',newline='',buffering=1) as file:
     
     # set up output file
     writer = csv.writer(file)
@@ -51,7 +51,8 @@ with open(csv_filename,mode='a',newline='') as file:
 
             # loop over basin entropy
             for w,eta,eta_tilde in zip(w_list,eta_list,eta_tilde_list):
-                print("Running n={}, r={}, h_tilde={}, eta={}".format(
+                print(
+                    "Running n={}, r={}, eta_tilde={}, eta={}".format(
                     n,r,eta_tilde,eta))
                 if len(w) > 0:
                     landscape_structure = [ [1,wi/2**n] for wi in w ]
