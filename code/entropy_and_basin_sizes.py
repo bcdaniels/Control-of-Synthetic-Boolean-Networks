@@ -33,16 +33,20 @@ def entropy_to_relative_basin_sizes(h_tilde,r,n,tol=1e-3):
     if solution.success and np.sqrt(solution.fun) < tol:
         return solution.x
     else:
-        raise Exception("Solution not found within given tolerance")
+        print("entropy_to_relative_basin_sizes: ERROR: Solution not found within given tolerance.  Returning empty array.")
+        return np.array([])
 
 def entropy_to_basin_sizes(h_tilde,r,n,tol=1e-3):
     """
     To do: Add checks to this!!!
     """
     w = entropy_to_relative_basin_sizes(h_tilde,r,n,tol=tol)
-    w_int = [round(w[_]*2**n) for _ in range(len(w))]
-    w_int[-1] = w_int[-1] +  2**n - np.sum(w_int)
-    return np.array(w_int)
+    if len(w) > 0:
+        w_int = [round(w[_]*2**n) for _ in range(len(w))]
+        w_int[-1] = w_int[-1] +  2**n - np.sum(w_int)
+        return np.array(w_int)
+    else:
+        return np.array([])
 
 
 
