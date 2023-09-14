@@ -19,7 +19,7 @@ from datetime import datetime
 
 # set parameters for scan
 n_list = range(8,20) #[8,9]
-r_list = [2,5,10,20,50,100] #[2,5]
+r_list = [3,4,6,7,8,9,30,40,60,70,80,90] #[2,5,10,20,50,100] #[2,5]
 num_entropies = 100 #2
 entropy_tolerance = 1e-1 # max diff. btwn. eta and desired eta
 seed_list = range(1000,1010) #[1000,1001]
