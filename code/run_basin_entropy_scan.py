@@ -9,6 +9,7 @@
 
 import AttAttach.attattach as ata
 import numpy as np
+import random
 from control_kernel_analysis import ck_analysis
 from TransitionNetwork import transitions_to_net
 from entropy_and_basin_sizes import entropy_to_basin_sizes,min_basin_entropy,max_basin_entropy,basin_entropy
@@ -61,7 +62,7 @@ with open(csv_filename,mode='a',newline='',buffering=1) as file:
                     for seed in seed_list:
                         print("    Running seed={}".format(seed))
                         
-                        np.random.seed(seed)
+                        random.seed(seed)
                         start_time = datetime.now()
                         
                         edges = ata.generate_landscape(n,
