@@ -19,20 +19,23 @@ from datetime import datetime
 
 
 # set parameters for scan
-n_list = range(8,20) #[8,9]
-r_list = [3,4,6,7,8,9,30,40,60,70,80,90] #[2,5,10,20,50,100] #[2,5]
-num_entropies = 100 #2
+n_list = [4,5] #range(8,20) #[8,9]
+r_list = [2,5] #[3,4,6,7,8,9,30,40,60,70,80,90] #[2,5,10,20,50,100] #[2,5]
+num_entropies = 2 #100 #2
 entropy_tolerance = 1e-1 # max diff. btwn. eta and desired eta
-seed_list = range(1000,1010) #[1000,1001]
+seed_list = range(1000,1001) #range(1000,1010) #[1000,1001]
+edge_permutation_type = 'smallH' # 'random'
 
-csv_filename = 'CK_vs_entropy_data_scan.csv'
+csv_filename = 'CK_vs_entropy_data_scan_231023.csv'
 
 with open(csv_filename,mode='a',newline='',buffering=1) as file:
     
     # set up output file
     writer = csv.writer(file)
     # write header to output file
-    writer.writerow(['n','r','eta','eta_tilde','seed','ck_mean_size','elapsed_time'])
+    writer.writerow(['n','r','eta','eta_tilde','seed',
+        'edge_permutation_type','h_max',
+        'ck_mean_size','elapsed_time'])
 
     # loop over network size
     for n in n_list:
@@ -57,6 +60,7 @@ with open(csv_filename,mode='a',newline='',buffering=1) as file:
                     n,r,eta_tilde,eta))
                 if len(w) > 0:
                     landscape_structure = [ [1,wi/2**n] for wi in w ]
+                    print("DEBUG: run_basin_entropy_scan: landscape_structure = {}".format(landscape_structure))
                     
                     # loop over samples for a given basin entropy
                     for seed in seed_list:
@@ -68,8 +72,24 @@ with open(csv_filename,mode='a',newline='',buffering=1) as file:
                         edges = ata.generate_landscape(n,
                                     landscape_structure)
                         if edges:
-                            transitions = [ e[1] for e in edges ]
+                            print("DEBUG: run_basin_entropy_scan: edges = {}".format(edges))
+                            # randomize edges to create edge_transitions
+                            if edge_permutation_type == 'random':
+                                edge_transitions = ata.random_labels_permutation(edges)
+                                Hmax = None
+                            elif edge_permutation_type == 'smallH':
+                                Hmax,edge_transitions = ata.smallH_labels_permutation(edges)
+                            else:
+                                raise Exception('Unrecognized edge_permutation_type: {}'.format(edge_permutation_type))
+                            print("DEBUG: run_basin_entropy_scan: edge_transitions = {}".format(edge_transitions))
+                        
+                            # translate transition list into neet network
+                            for i,e in enumerate(edge_transitions):
+                                assert(e[0]==i) # sanity check
+                            transitions = [ e[1] for e in edge_transitions ]
                             net = transitions_to_net(transitions)
+                            
+                            # do control kernel analysis
                             ck_data = ck_analysis(net)
                             ck_mean_size = np.mean(
                                 ck_data['control_kernel_sizes'])
@@ -79,8 +99,9 @@ with open(csv_filename,mode='a',newline='',buffering=1) as file:
                             
                             # write data to output file
                             writer.writerow(
-                                [n,r,eta,eta_tilde,seed,ck_mean_size,
-                                elapsed_time])
+                                [n,r,eta,eta_tilde,seed,
+                                edge_permutation_type,Hmax,
+                                ck_mean_size,elapsed_time])
                         else:
                             print("run_basin_entropy_scan ERROR: Error in generate_landscape.  Skipping network.")
                     # end loop over samples
