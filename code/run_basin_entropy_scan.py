@@ -10,8 +10,8 @@
 import AttAttach.attattach as ata
 import numpy as np
 import random
-from control_kernel_analysis import ck_analysis
-from TransitionNetwork import transitions_to_net
+from neet.controlkernel.control_kernel_analysis import ck_analysis
+from neet.boolean.TransitionNetwork import transitions_to_net
 from entropy_and_basin_sizes import entropy_to_basin_sizes,min_basin_entropy,max_basin_entropy,basin_entropy
 import csv
 from datetime import datetime
