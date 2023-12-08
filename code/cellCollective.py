@@ -8,6 +8,7 @@
 
 import glob
 import os
+import numpy as np
 from neet.boolean import LogicNetwork
 
 def load_cell_collective_network(directory):
@@ -36,3 +37,18 @@ def load_all_cell_collective_networks(main_directory,
             net = load_cell_collective_network(directory)
             netDict[name] = net
     return netDict
+
+def load_cell_collective_network_from_index(main_directory,
+    net_index,**kwargs):
+    """
+    Returns the name and neet network corresponding to the
+    cell collective network with given index in the sorted
+    list of names of networks located in subdirectories
+    of the given main directory.
+    """
+    netDict = load_all_cell_collective_networks(main_directory,
+        **kwargs)
+    netnames = np.sort(list(netDict.keys()))
+    name = netnames[net_index]
+    net = netDict[name]
+    return name,net
