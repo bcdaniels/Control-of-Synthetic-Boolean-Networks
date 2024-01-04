@@ -52,3 +52,20 @@ def load_cell_collective_network_from_index(main_directory,
     name = netnames[net_index]
     net = netDict[name]
     return name,net
+
+def directory_name(n_name):
+    """
+    Returns the name of the Cell Collective directory given
+    the "nice" name with spaces
+    """
+    return n_name.replace(' ','_').replace('.','')
+    
+def nice_name(dir_name):
+    """
+    Returns the "nice" name of the Cell Collective network
+    given the directory name
+    """
+    nice = dir_name.replace('_',' ')
+    if nice == 'Iron Acquisition And Oxidative Stress Response In Aspergillus Fumigatus':
+        nice = nice+'.'
+    return nice
