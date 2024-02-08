@@ -7,16 +7,17 @@
 
 from load_control_kernel_data import loadDataExact
 from iowaDatabase import load_all_iowa_database_networks
+from preimages import isolated_list
 
 def computeBasinData(dataDict,netDict):
     basinData = {}
-    for name in tqdm.tqdm(dataDict):
+    for name in dataDict:
+        print("run_basin_data_iowa: Analyzing {}...".format(name))
         CKdata = dataDict[name]
-        table = CKdata['net_table']
         net = netDict[name]
-        is_isolated_list = isolated_list(net,CKdata[net_name]['attractors'])
+        is_isolated_list = isolated_list(net,CKdata['attractors'])
         basinData[name] = {'is_isolated_list':is_isolated_list,
-                           'attractors':net.attractors,
+                           'attractors':CKdata['attractors'],
                                   }
     
 if __name__=='__main__':
