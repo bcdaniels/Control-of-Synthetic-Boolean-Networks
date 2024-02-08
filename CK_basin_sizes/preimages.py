@@ -8,6 +8,7 @@
 
 import pandas as pd
 from neet import UniformSpace
+import tqdm
 
 def activating_states(net,node_index,activate=True):
     """
@@ -90,3 +91,28 @@ def preimages(net,state,communities=None):
     #return df_list
     return conditions_product_list(df_list)
 
+def isolated_list(net,attractors,basin_samples=None):
+    """
+    Returns a list of Boolean values of length number of attractors
+    corresponding to whether each attractor is "isolated"
+    (has basin of size 1).
+    
+    basin_samples (None)        : Optionally give list of basin
+                                  samples to avoid computing
+                                  preimages of attractors that
+                                  we already know are not
+                                  isolated.
+    """
+    if basin_samples is None:
+        basin_samples = [ 0 for a in attractors ]
+    assert(len(attractors)==len(basin_samples))
+    
+    is_isolated_list = []
+    for i,att in enumerate(tqdm.tqdm(attractors)):
+        if len(att) > 1 or basin_samples[i] > 1:
+            is_isolated_list.append(False)
+        else:
+            decoded_att = net.decode(att[0])
+            is_isolated_list.append(
+                len(preimages(net,decoded_att))==1 )
+    return is_isolated_list
