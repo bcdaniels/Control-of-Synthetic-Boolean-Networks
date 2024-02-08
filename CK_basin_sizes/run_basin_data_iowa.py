@@ -8,6 +8,7 @@
 from load_control_kernel_data import loadDataExact
 from iowaDatabase import load_all_iowa_database_networks
 from preimages import isolated_list
+from toolbox.simplePickle import save
 
 def computeBasinData(dataDict,netDict):
     basinData = {}
@@ -19,6 +20,7 @@ def computeBasinData(dataDict,netDict):
         basinData[name] = {'is_isolated_list':is_isolated_list,
                            'attractors':CKdata['attractors'],
                                   }
+    return basinData
     
 if __name__=='__main__':
     iowaNetDir = '/Users/bdaniel6/ASUDropbox/Research/control-continuous/Data/240202/models/update_rules_models_in_literature_we_randomly_come_across/'
