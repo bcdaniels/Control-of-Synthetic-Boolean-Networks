@@ -17,7 +17,8 @@ def load_iowa_database_network(expressions_file,external_file):
     Creates neet network from iowa database data in the
     given directory.
     """
-    net = LogicNetwork.read_logic(expressions_file,external_file)
+    net = LogicNetwork.read_logic(expressions_file,
+        external_file,parentheses_in_names=False)
     return net
 
 def load_all_iowa_database_networks(directory,

@@ -18,7 +18,8 @@ def load_cell_collective_network(directory):
     """
     expressions_file = '{}/expressions.txt'.format(directory)
     external_file = '{}/external.txt'.format(directory)
-    net = LogicNetwork.read_logic(expressions_file, external_file)
+    net = LogicNetwork.read_logic(expressions_file,
+        external_file,parentheses_in_names=True)
     return net
 
 def load_all_cell_collective_networks(main_directory,
