@@ -4,6 +4,7 @@ import numpy as np
 
 from neet.boolean.examples import s_pombe, s_cerevisiae
 from neet.boolean import LogicNetwork, WTNetwork
+from neet import UniformSpace
 
 # a logic network
 from neet.boolean.examples import mouse_cortical_7B
@@ -129,6 +130,21 @@ class TestPreimages(unittest.TestCase):
                 post_image_state = net.update(pre_image_state)
                 np.testing.assert_array_equal(post_image_state,
                                               initial_state)
+                                              
+    def test_num_preimage_states(self):
+        """
+        The sum of the lengths of all preimage lists should be 2^n
+        """
+        for net in [c_elegans,
+                    simple_logic_net(),
+                    simple_biased_net(),
+                    simple_dependence_net(),]:
+            N = net.size
+            all_states = UniformSpace(N,2)
+            num_preimage_states = 0
+            for state in all_states:
+                num_preimage_states += len(pre.preimages(net,state))
+            self.assertEqual(num_preimage_states,2**N)
         
 if __name__ == "__main__":
     unittest.main()
