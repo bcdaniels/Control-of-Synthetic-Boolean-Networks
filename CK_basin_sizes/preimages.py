@@ -12,11 +12,13 @@ import tqdm
 
 def activating_states(net,node_index,activate=True):
     """
-    Returns the states that activate or deactivate a given node in a Neet network.
+    Returns the states that activate or deactivate a given node
+    in a Neet network.
     
     Returns: (neighbors_tuple,conditions),
-    where neighbors_tuple is a sorted tuple of node indices on which the given node depends,
-    and conditions is a tuple of binary states that activate the given node
+    where neighbors_tuple is a sorted tuple of node indices
+    on which the given node depends, and conditions is a tuple
+    of binary states that activate the given node
     (or deactivate the given node if activate=False)
     """
     neighbors_list = tuple(sorted(net.neighbors_in(node_index)))
@@ -39,12 +41,13 @@ def activating_states(net,node_index,activate=True):
 # from https://github.com/EnricoBorriello/Boolean-Backwards-Reachability/blob/main/backreach.py
 def conditions_product(df1,df2):
     '''
-    Activating conditions for functions 1 AND 2 given the input truth tables
-    for function 1 and function 2. The inputs need to be dataframes with column names
-    corresponding to the the labes of the nodes.
+    Activating conditions for functions 1 AND 2 given the
+    input truth tables for function 1 and function 2. The inputs
+    need to be dataframes with column names corresponding to
+    the labes of the nodes.
     '''
 
-    # Firts check if the two function share input nodes
+    # First check if the two functions share input nodes
 
     shared_columns = list(set(df1.columns) & set(df2.columns))
 
@@ -74,8 +77,9 @@ def activating_conditions_df(net,node_index,node_state):
 
 def preimages(net,state,communities=None):
     """
-    Given a state of a Neet network, returns a list of all primages of that state
-    (all states that produce the given state after one timestep)
+    Given a state of a Neet network, returns a list of
+    all primages of that state (all states that produce
+    the given state after one timestep)
     """
     if communities == None:
         communities = [range(net.size)]
@@ -83,19 +87,34 @@ def preimages(net,state,communities=None):
     df_list = []
     for community in communities:
         community = list(community)
-        df = activating_conditions_df(net,community[0],state[community[0]])
+        df = activating_conditions_df(
+            net,community[0],state[community[0]])
         for i in range(1,len(community)):
-            dfi = activating_conditions_df(net,community[i],state[community[i]])
+            dfi = activating_conditions_df(
+                net,community[i],state[community[i]])
             df = conditions_product(df,dfi)
         df_list.append(df)
-    #return df_list
-    return conditions_product_list(df_list)
+    nodes_product = conditions_product_list(df_list)
+     
+    # if some nodes have nothing that depends on them, we
+    # need to add their possible states, too
+    missing_nodes = [ node_index \
+                for node_index in range(net.size) \
+                if node_index not in nodes_product.columns ]
+    if len(missing_nodes) > 0:
+        missing_conditions = UniformSpace(len(missing_nodes),2)
+        missing_states_df = pd.DataFrame(
+            missing_conditions,columns=missing_nodes)
+        nodes_product = conditions_product(nodes_product,
+                                           missing_states_df)
+    
+    return nodes_product
 
 def isolated_list(net,attractors,basin_samples=None):
     """
-    Returns a list of Boolean values of length number of attractors
-    corresponding to whether each attractor is "isolated"
-    (has basin of size 1).
+    Returns a list of Boolean values of length number of
+    attractors corresponding to whether each attractor is
+    "isolated" (has basin of size 1).
     
     basin_samples (None)        : Optionally give list of basin
                                   samples to avoid computing
