@@ -72,9 +72,14 @@ def conditions_product_list(df_list):
         df = conditions_product(df,dfi)
     return df
 
-def find_leaf_nodes(net):
+def leaf_nodes(net):
+    """
+    Return indices of nodes of the given Neet network that
+    have zero out-degree --- that is, future states do not
+    depend on the states of these nodes.
+    """
     nx_net = net.network_graph()
-    return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 and nx_net.in_degree(x)>0]
+    return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 ]
 
 def activating_conditions_df(net,node_index,node_state):
     nodes,conditions = activating_states(net,node_index,activate=node_state)
@@ -132,6 +137,10 @@ def isolated_list(net,attractors,basin_samples=None,
     attractors corresponding to whether each attractor is
     "isolated" (has basin of size 1).
     
+    Note: By the current definition, networks with any
+    "leaf" nodes (see leaf_nodes function) have no isolated
+    fixed points.
+    
     basin_samples (None)        : Optionally give list of basin
                                   samples to avoid computing
                                   preimages of attractors that
@@ -142,14 +151,17 @@ def isolated_list(net,attractors,basin_samples=None,
         basin_samples = [ 0 for a in attractors ]
     assert(len(attractors)==len(basin_samples))
     
-    is_isolated_list = []
-    for i,att in enumerate(tqdm.tqdm(attractors)):
-        if len(att) > 1 or basin_samples[i] > 1:
-            is_isolated_list.append(False)
-        else:
-            decoded_att = net.decode(att[0])
-            pis = preimages(net,
-                            decoded_att,
-                            **kwargs)
-            is_isolated_list.append( len(pis) == 1 )
-    return is_isolated_list
+    if len(leaf_nodes(net))>0:
+        return [ False for att in attractors ]
+    else:
+        is_isolated_list = []
+        for i,att in enumerate(tqdm.tqdm(attractors)):
+            if len(att) > 1 or basin_samples[i] > 1:
+                is_isolated_list.append(False)
+            else:
+                decoded_att = net.decode(att[0])
+                pis = preimages(net,
+                                decoded_att,
+                                **kwargs)
+                is_isolated_list.append( len(pis) == 1 )
+        return is_isolated_list
