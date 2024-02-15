@@ -8,6 +8,7 @@
 
 import pandas as pd
 from neet import UniformSpace
+import networkx as nx
 import tqdm
 
 def activating_states(net,node_index,activate=True):
@@ -75,13 +76,23 @@ def activating_conditions_df(net,node_index,node_state):
     nodes,conditions = activating_states(net,node_index,activate=node_state)
     return pd.DataFrame(conditions,columns=nodes)
 
-def preimages(net,state,communities=None):
+def preimages(net,state,use_louvain_communities=False):
     """
     Given a state of a Neet network, returns a list of
     all primages of that state (all states that produce
     the given state after one timestep)
+    
+    use_louvain_communities (False) : If True, compute louvain
+                                      communities for the network
+                                      to attempt to speed up the
+                                      calculation
     """
-    if communities == None:
+    
+    if use_louvain_communities:
+        nx_net = net.network_graph()
+        communities = nx.community.louvain_communities(
+            nx_net.to_undirected())
+    else:
         communities = [range(net.size)]
     
     df_list = []
@@ -110,7 +121,8 @@ def preimages(net,state,communities=None):
     
     return nodes_product
 
-def isolated_list(net,attractors,basin_samples=None):
+def isolated_list(net,attractors,basin_samples=None,
+    **kwargs):
     """
     Returns a list of Boolean values of length number of
     attractors corresponding to whether each attractor is
@@ -132,6 +144,8 @@ def isolated_list(net,attractors,basin_samples=None):
             is_isolated_list.append(False)
         else:
             decoded_att = net.decode(att[0])
-            is_isolated_list.append(
-                len(preimages(net,decoded_att))==1 )
+            pis = preimages(net,
+                            decoded_att,
+                            **kwargs)
+            is_isolated_list.append( len(pis) == 1 )
     return is_isolated_list
