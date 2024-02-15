@@ -12,13 +12,14 @@
 import csv
 import sys
 from datetime import datetime
-from toolbox.simplePickle import save
+from toolbox.simplePickle import load,save
 from cellCollective import load_cell_collective_network_from_index
 import neet.controlkernel.modularity as md
 from InfEst.entropyEstimates import meanAndStdevEntropyNem
 
 # set parameters
-num_samples = 10000
+num_samples = 1000000 #10000
+compute_entropy = False # True
 cell_collective_directory = '../../Data/Cell Collective/'
 
 # set network to run from command line argument
@@ -30,6 +31,14 @@ name,net = load_cell_collective_network_from_index(
             cell_collective_directory,net_index)
 print("run_sampled_basin_entropy_cell_collective: "\
       "Running analysis for network {}...".format(name))
+      
+# use preexisting attractor data for Yeast Apoptosis network
+if name == 'Yeast_Apoptosis':
+    exactDataDir = '/Users/bdaniel6/ASUDropbox/Shared/GRNs/DATA/20200820-control-kernels/'
+    known_atts = load(exactDataDir+'control_kernel_Yeast Apoptosis.dat')['attractors']
+    print("run_sampled_basin_entropy_cell_collective: Using known attractors for Yeast Apoptosis network...")
+else:
+    known_atts = None
       
 # set output filenames
 csv_filename = 'basin_entropy_data_{}.csv'.format(name)
@@ -53,10 +62,15 @@ with open(csv_filename,mode='w',newline='',buffering=1) as file:
                     
     # do basin entropy analysis
     attractors,freqs = \
-        md.sampled_basin_counts(net,num_samples=num_samples)
+        md.sampled_basin_counts(net,
+                                num_samples=num_samples,
+                                atts=known_atts)
         
-    basin_entropy_NSB,std_basin_entropy_NSB = \
-        meanAndStdevEntropyNem(freqs)
+    if compute_entropy:
+        basin_entropy_NSB,std_basin_entropy_NSB = \
+            meanAndStdevEntropyNem(freqs)
+    else:
+        basin_entropy_NSB,std_basin_entropy_NSB = None, None
                         
     end_time = datetime.now()
     elapsed_time = end_time - start_time
