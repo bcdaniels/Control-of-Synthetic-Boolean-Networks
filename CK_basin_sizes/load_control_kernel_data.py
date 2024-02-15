@@ -148,7 +148,7 @@ def loadDataBasins(dir='.'):
 
     return dataDict,df
 
-def loadDataExact(dir='.'):
+def loadDataExact(dir='.',require_ck=False):
     dataDict = {}
     dataForFrame = [] #dataDictForFrame = {}
     for filename in glob.glob(dir+'/control_kernel_*.dat'):
@@ -170,7 +170,7 @@ def loadDataExact(dir='.'):
         
             dataDict[d['name']] = d
             
-            ddata = dataFrameExact(d)
+            ddata = dataFrameExact(d,require_ck=require_ck)
             
             if len(ddata) > 0:
                 dataForFrame.append(ddata) #dataDictForFrame[d['name']] = ddata
@@ -181,7 +181,7 @@ def loadDataExact(dir='.'):
 
         
 
-def dataFrameExact(d):
+def dataFrameExact(d,require_ck=False):
     ddata = {'name':d['name']}
             
     if 'encoded_input' in d:
@@ -211,7 +211,10 @@ def dataFrameExact(d):
                  'number of fixed point attractors': len(attractorsFilteredFixedPoint),
                  'is cell collective network': not d['name'].startswith('random'),
                  })
-             
+    
+    if require_ck and ('control_kernels' not in d):
+        return {}
+    
     if 'control_kernels' in d:
         # get control kernel data
         
