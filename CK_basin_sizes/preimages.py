@@ -72,6 +72,10 @@ def conditions_product_list(df_list):
         df = conditions_product(df,dfi)
     return df
 
+def find_leaf_nodes(net):
+    nx_net = net.network_graph()
+    return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 and nx_net.in_degree(x)>0]
+
 def activating_conditions_df(net,node_index,node_state):
     nodes,conditions = activating_states(net,node_index,activate=node_state)
     return pd.DataFrame(conditions,columns=nodes)
