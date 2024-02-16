@@ -150,7 +150,7 @@ def loadDataBasins(dir='.'):
 
 def loadDataExact(dir='.',require_ck=False):
     dataDict = {}
-    dataForFrame = [] #dataDictForFrame = {}
+    dataForFrame = []
     for filename in glob.glob(dir+'/control_kernel_*.dat'):
         if filename.find('split') == -1: # we don't want to include "split" data
             try:
@@ -168,14 +168,15 @@ def loadDataExact(dir='.',require_ck=False):
                 if type(key) == bytes:
                     d[key.decode()] = d[key]
         
-            dataDict[d['name']] = d
+            if (not require_ck) or ('control_kernels' in d):
+                dataDict[d['name']] = d
             
             ddata = dataFrameExact(d,require_ck=require_ck)
             
             if len(ddata) > 0:
-                dataForFrame.append(ddata) #dataDictForFrame[d['name']] = ddata
-
-    df = pd.DataFrame.from_records(dataForFrame) #,'index') # from_dict
+                dataForFrame.append(ddata)
+                
+    df = pd.DataFrame.from_records(dataForFrame)
     df.set_index('name',inplace=True)
     return dataDict,df
 
