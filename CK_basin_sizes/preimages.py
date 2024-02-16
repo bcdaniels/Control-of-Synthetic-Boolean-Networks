@@ -79,13 +79,36 @@ def leaf_nodes(net):
     depend on the states of these nodes.
     """
     nx_net = net.network_graph()
+    return leaf_nodes_from_nx_net(nx_net)
+
+def leaf_nodes_from_nx_net(nx_net):
+    """
+    Return indices of nodes of the given networkx network that
+    have zero out-degree.
+    """
     return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 ]
+
+def core_nodes(net):
+    """
+    Return indices of nodes of the given Neet network that
+    exclude any dependent chains that end in leaf nodes.
+    
+    (Iteratively removes leaf nodes until no leaves remain.)
+    """
+    nx_net = net.network_graph()
+    leaves = leaf_nodes_from_nx_net(nx_net)
+    while len(leaves) > 0:
+        for leaf in leaves:
+            nx_net.remove_node(leaf)
+        leaves = leaf_nodes_from_nx_net(nx_net)
+    return list(nx_net.nodes())
 
 def activating_conditions_df(net,node_index,node_state):
     nodes,conditions = activating_states(net,node_index,activate=node_state)
     return pd.DataFrame(conditions,columns=nodes)
 
-def preimages(net,state,use_louvain_communities=False):
+def preimages(net,state,use_louvain_communities=False,
+    core_only=False):
     """
     Given a state of a Neet network, returns a list of
     all primages of that state (all states that produce
@@ -95,6 +118,10 @@ def preimages(net,state,use_louvain_communities=False):
                                       communities for the network
                                       to attempt to speed up the
                                       calculation
+    core_only (False)               : If True, only consider
+                                      the state of the
+                                      network core (see
+                                      core_nodes function)
     """
     
     if use_louvain_communities:
@@ -104,8 +131,19 @@ def preimages(net,state,use_louvain_communities=False):
     else:
         communities = [range(net.size)]
     
+    if core_only:
+        # filter nodes in communities to include only those
+        # in the network core
+        core = core_nodes(net)
+        communities_filtered = [                         \
+                [ node for node in com if node in core ] \
+            for com in communities ]
+    else:
+        communities_filtered = communities
+        
+    
     df_list = []
-    for community in communities:
+    for community in communities_filtered:
         community = list(community)
         df = activating_conditions_df(
             net,community[0],state[community[0]])
@@ -116,42 +154,47 @@ def preimages(net,state,use_louvain_communities=False):
         df_list.append(df)
     nodes_product = conditions_product_list(df_list)
      
-    # if some nodes have nothing that depends on them, we
-    # need to add their possible states, too
-    missing_nodes = [ node_index \
-                for node_index in range(net.size) \
-                if node_index not in nodes_product.columns ]
-    if len(missing_nodes) > 0:
-        missing_conditions = UniformSpace(len(missing_nodes),2)
-        missing_states_df = pd.DataFrame(
-            missing_conditions,columns=missing_nodes)
-        nodes_product = conditions_product(nodes_product,
-                                           missing_states_df)
-    
+    if not core_only:
+        # if some nodes have nothing that depends on them, we
+        # need to add their possible states, too
+        missing_nodes = [ node_index \
+                    for node_index in range(net.size) \
+                    if node_index not in nodes_product.columns ]
+        if len(missing_nodes) > 0:
+            missing_conditions = UniformSpace(
+                len(missing_nodes),2)
+            missing_states_df = pd.DataFrame(
+                missing_conditions,columns=missing_nodes)
+            nodes_product = conditions_product(nodes_product,
+                                               missing_states_df)
+        
     return nodes_product
 
 def isolated_list(net,attractors,basin_samples=None,
-    **kwargs):
+    core_only=True,**kwargs):
     """
     Returns a list of Boolean values of length number of
     attractors corresponding to whether each attractor is
     "isolated" (has basin of size 1).
-    
-    Note: By the current definition, networks with any
-    "leaf" nodes (see leaf_nodes function) have no isolated
-    fixed points.
     
     basin_samples (None)        : Optionally give list of basin
                                   samples to avoid computing
                                   preimages of attractors that
                                   we already know are not
                                   isolated.
+    core_only (True)            : If True, only consider
+                                  the state of the
+                                  network core.  This allows
+                                  networks with "leaf" nodes
+                                  to be considered to have
+                                  isolated fixed points.
+                                  See core_nodes function.
     """
     if basin_samples is None:
         basin_samples = [ 0 for a in attractors ]
     assert(len(attractors)==len(basin_samples))
     
-    if len(leaf_nodes(net))>0:
+    if (not core_only) and (len(leaf_nodes(net))>0):
         return [ False for att in attractors ]
     else:
         is_isolated_list = []
@@ -162,6 +205,7 @@ def isolated_list(net,attractors,basin_samples=None,
                 decoded_att = net.decode(att[0])
                 pis = preimages(net,
                                 decoded_att,
+                                core_only=core_only,
                                 **kwargs)
                 is_isolated_list.append( len(pis) == 1 )
         return is_isolated_list
