@@ -181,7 +181,8 @@ def isolated_list(net,attractors,basin_samples=None,
                                   samples to avoid computing
                                   preimages of attractors that
                                   we already know are not
-                                  isolated.
+                                  isolated.  Currently used
+                                  only if core_only = False.
     core_only (True)            : If True, only consider
                                   the state of the
                                   network core.  This allows
@@ -190,7 +191,7 @@ def isolated_list(net,attractors,basin_samples=None,
                                   isolated fixed points.
                                   See core_nodes function.
     """
-    if basin_samples is None:
+    if (basin_samples is None) or core_only:
         basin_samples = [ 0 for a in attractors ]
     assert(len(attractors)==len(basin_samples))
     
