@@ -87,6 +87,28 @@ def leaf_nodes_from_nx_net(nx_net):
     have zero out-degree.
     """
     return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 ]
+    
+# 2024/2/21 taken from
+#   modularity/scripts/input-nodes.ipynb/input_nodes_old
+# 4.12.2019 taken from sensitivity_analysis/node_sensitivity.ipynb
+def self_loop_input_nodes(net):
+    """
+    Returns a list of indices of nodes that are
+    input nodes (those that have in-degree 1 consisting
+    of a single self-loop.)
+    
+    Includes cases:
+        inoperative self-loop (0 or 1) -> 0 or (0 or 1) -> 1
+        input self-loop 0 -> 0, 1 -> 1
+        flip self-loop 0 -> 1, 1 -> 0
+        
+    Does not include cases:
+        inoperative constant (no input neighbors,
+                              no activating conditions)
+        inoperative constant (many input neighbors,
+                              though none matter)
+    """
+    return [ i for i in range(net.size) if len(net.neighbors_in(i))==1 and (i in net.neighbors_in(i)) ]
 
 def core_nodes(net):
     """
