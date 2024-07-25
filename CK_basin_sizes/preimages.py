@@ -88,6 +88,14 @@ def leaf_nodes_from_nx_net(nx_net):
     """
     return [x for x in nx_net.nodes() if nx_net.out_degree(x)==0 ]
     
+def num_edges(net):
+    """
+    Return the number of edges in the given Neet network.
+    Edges are counted even if they are inoperative.
+    """
+    nx_net = net.network_graph()
+    return len(nx_net.edges)
+    
 # 2024/2/21 taken from
 #   modularity/scripts/input-nodes.ipynb/input_nodes_old
 # 4.12.2019 taken from sensitivity_analysis/node_sensitivity.ipynb
